@@ -1,6 +1,5 @@
 useDynLib("stressR", stress_main)
 
 export(stress, stress.opts, stress.cpu, 
-  stress.io, 
-  stress.vm, vm.opts
+  stress.io, stress.vm, vm.opts, stress.hdd
 )

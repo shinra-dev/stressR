@@ -53,7 +53,6 @@ vm.opts <- function(bytes=256*1024*1024, stride=4096, hang=0, keep=FALSE)
   stride <- as.integer(stride)
   
   
-  
   ret <- list(bytes=bytes, stride=stride, hang=hang, keep=keep)
   class(ret) <- "vm_opts"
   
@@ -62,18 +61,7 @@ vm.opts <- function(bytes=256*1024*1024, stride=4096, hang=0, keep=FALSE)
 
 
 
-#print.stress <- function(x, ...)
-#{
-#  stress <- stress[1:(length(stress)-1)]
-#  cat(paste(stress, collapse="\n"))
-#  cat("\n")
-#  
-#  invisible()
-#}
-
-
-
-stress <- function(timeout=1, cpu=0, io=0, vm=0, hdd=0, vmopts=vm.opts(), opts=stress.opts())
+stress <- function(timeout=1, cpu=0, io=0, vm=0, hdd=0, hdd_bytes=1024*1024*1024, vmopts=vm.opts(), opts=stress.opts())
 {
   timeout <- as.integer(timeout)
   if (timeout < 0) stop(paste0("argument 'timeout' must be >= 0; have timeout=", timeout))
@@ -88,15 +76,14 @@ stress <- function(timeout=1, cpu=0, io=0, vm=0, hdd=0, vmopts=vm.opts(), opts=s
   vm <- as.integer(vm)
   hdd <- as.integer(hdd)
   
-  hdd_bytes = 1024L * 1024L * 1024L
+  hdd_bytes <- as.integer(hdd_bytes)
   
-  ret <- .Call(stress_main, 
+  .Call(stress_main, 
         opts$verbose, opts$dryrun, opts$backoff, timeout, 
         cpu, io, vm, vmopts$bytes, vmopts$stride,
         vmopts$hang, vmopts$keep, hdd, hdd_bytes)
   
-  class(ret) <- "stress"
-  return(ret)
+  return(invisible())
 }
 
 
@@ -122,8 +109,8 @@ stress.vm <- function(timeout=1, vm=1, vmopts=vm.opts(), opts=stress.opts())
 
 
 
-stress.hdd <- function()
+stress.hdd <- function(timeout=1, hdd=1, hdd_bytes=1024*1024*1024, opts=stress.opts())
 {
-  
+  stress(timeout=timeout, cpu=0, io=0, vm=0, hdd=hdd, hdd_bytes=hdd_bytes, opts=stress.opts())
 }
 
