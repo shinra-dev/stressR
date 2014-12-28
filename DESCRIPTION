@@ -2,7 +2,8 @@ Package: stressR
 Type: Package
 Title: A System Stress Tester
 Version: 0.1
-Description: 
+Description: A set of stress tests for CPU, memory, and hdd, callable
+  by R.
 License: GPL (>= 2)
 Depends: R (>= 2.15.1)
 NeedsCompilation: yes

@@ -1,0 +1,8 @@
+# stressR
+
+```{r, eval=TRUE, echo=TRUE}
+library(stressR)
+
+stress(cpu=1)
+```
+
