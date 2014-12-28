@@ -238,19 +238,10 @@ SEXP stress_main(
   int pid, children = 0, retval = 0;
   long starttime, stoptime, runtime, forks;
   
-  /* Variables that indicate which options have been selected.  */
-  int do_dryrun = 0;
-  long long do_backoff = 3000;
-  long long do_timeout = 0;
-  long long do_cpu = 0;
-  long long do_io = 0;
-  long long do_vm = 0;
-  long long do_vm_bytes = 256 * 1024 * 1024;
-  long long do_vm_stride = 4096;
-  long long do_vm_hang = -1;
-  int do_vm_keep = 0;
-  long long do_hdd = 0;
-  long long do_hdd_bytes = 1024 * 1024 * 1024;
+  int do_dryrun;
+  long long do_backoff, do_timeout, do_cpu, do_io;
+  long long do_vm, do_vm_bytes, do_vm_stride, do_vm_hang, do_vm_keep;
+  long long do_hdd, do_hdd_bytes;
   
   /* Record our start time.  */
   if ((starttime = time(NULL)) == -1)
