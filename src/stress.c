@@ -46,22 +46,6 @@ int global_debug = 2;
 static char *global_progname = "stressR";
 
 /* Implemention of runtime-selectable severity message printing.  */
-/*  #define dbg(OUT, STR, ARGS...) if (global_debug >= 3) \*/
-/*	  fprintf(stdout, "%s: dbug: [%lli] ", \*/
-/*		  global_progname,(long long)getpid()), \*/
-/*		  fprintf(OUT, STR, ##ARGS), fflush(OUT)*/
-/*  #define out(OUT, STR, ARGS...) if (global_debug >= 2) \*/
-/*	  fprintf(stdout, "%s: info: [%lli] ", \*/
-/*		  global_progname,(long long)getpid()), \*/
-/*		  fprintf(OUT, STR, ##ARGS), fflush(OUT)*/
-/*  #define wrn(OUT, STR, ARGS...) if (global_debug >= 1) \*/
-/*	  fprintf(stderr, "%s: WARN: [%lli](%d) ", \*/
-/*		  global_progname,(long long)getpid(), __LINE__), \*/
-/*		  fprintf(OUT, STR, ##ARGS), fflush(OUT)*/
-/*  #define err(OUT, STR, ARGS...) if (global_debug >= 0) \*/
-/*	  fprintf(stderr, "%s: FAIL: [%lli](%d) ", \*/
-/*		  global_progname,(long long)getpid(), __LINE__), \*/
-/*		  fprintf(OUT, STR, ##ARGS), fflush(OUT)*/
 #define dbg(OUT, STR, ARGS...) if (global_debug >= 3) \
 	Rprintf("%s: dbug: [%lli] ", \
 		global_progname,(long long)getpid()), \
@@ -280,7 +264,7 @@ SEXP stress_main(
 /*    usage(0);*/
   
   /* Round robin dispatch our worker processes.  */
-  while ((forks =(do_cpu + do_io + do_vm + do_hdd)))
+  while ((forks = (do_cpu + do_io + do_vm + do_hdd)))
   {
     long long backoff, timeout = 0;
     
