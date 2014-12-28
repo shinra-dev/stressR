@@ -68,7 +68,7 @@ static char *global_progname = "stressR";
 static int hogcpu(void)
 {
   while (1)
-    sqrt(rand());
+    sqrt(unif_rand());
   
   return 0;
 }
@@ -149,7 +149,7 @@ static int hoghdd(long long bytes)
   dbg(stdout, "seeding %d byte buffer with random data\n", chunk);
   for(i = 0; i < chunk - 1; i++)
   {
-    j = rand();
+    j = unif_rand();
     j =(j < 0) ? -j : j;
     j %= 95;
     j += 32;
