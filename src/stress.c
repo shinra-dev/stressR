@@ -46,22 +46,22 @@ int global_debug = 2;
 static char *global_progname = "stressR";
 
 /* Implemention of runtime-selectable severity message printing.  */
-#define dbg(OUT, STR, ARGS...) if (global_debug >= 3) \
+#define dbg(STR, ARGS...) if (global_debug >= 3) \
 	Rprintf("%s: dbug: [%lli] ", \
 		global_progname,(long long)getpid()), \
-		Rprintf(STR, ##ARGS), fflush(OUT)
-#define out(OUT, STR, ARGS...) if (global_debug >= 2) \
+		Rprintf(STR, ##ARGS)
+#define out(STR, ARGS...) if (global_debug >= 2) \
 	Rprintf("%s: info: [%lli] ", \
 		global_progname,(long long)getpid()), \
-		Rprintf(STR, ##ARGS), fflush(OUT)
-#define wrn(OUT, STR, ARGS...) if (global_debug >= 1) \
+		Rprintf(STR, ##ARGS)
+#define wrn(STR, ARGS...) if (global_debug >= 1) \
 	Rprintf("%s: WARN: [%lli](%d) ", \
 		global_progname,(long long)getpid(), __LINE__), \
-		Rprintf(STR, ##ARGS), fflush(OUT)
-#define err(OUT, STR, ARGS...) if (global_debug >= 0) \
+		Rprintf(STR, ##ARGS)
+#define err(STR, ARGS...) if (global_debug >= 0) \
 	Rprintf("%s: FAIL: [%lli](%d) ", \
 		global_progname,(long long)getpid(), __LINE__), \
-		Rprintf(STR, ##ARGS), fflush(OUT)
+		Rprintf(STR, ##ARGS)
 
 
 
@@ -92,29 +92,29 @@ static int hogvm(long long bytes, long long stride, long long hang, int keep)
   {
     if (do_malloc)
     {
-      dbg(stdout, "allocating %lli bytes ...\n", bytes);
+      dbg("allocating %lli bytes ...\n", bytes);
       if (!(ptr =(char *) malloc(bytes * sizeof(char))))
       {
-        err(stderr, "hogvm malloc failed: %s\n", strerror(errno));
+        err("hogvm malloc failed: %s\n", strerror(errno));
         return 1;
       }
       if (keep)
         do_malloc = 0;
     }
     
-    dbg(stdout, "touching bytes in strides of %lli bytes ...\n", stride);
+    dbg("touching bytes in strides of %lli bytes ...\n", stride);
     for(i = 0; i < bytes; i += stride)
       ptr[i] = 'Z';           /* Ensure that COW happens.  */
     
     if (hang == 0)
     {
-      dbg(stdout, "sleeping forever with allocated memory\n");
+      dbg("sleeping forever with allocated memory\n");
       while (1)
         sleep(1024);
     }
     else if (hang > 0)
     {
-      dbg(stdout, "sleeping for %llis with allocated memory\n", hang);
+      dbg("sleeping for %llis with allocated memory\n", hang);
       sleep(hang);
     }
     
@@ -123,7 +123,7 @@ static int hogvm(long long bytes, long long stride, long long hang, int keep)
       c = ptr[i];
       if (c != 'Z')
       {
-        err(stderr, "memory corruption at: %p\n", ptr + i);
+        err("memory corruption at: %p\n", ptr + i);
         return 1;
       }
     }
@@ -131,7 +131,7 @@ static int hogvm(long long bytes, long long stride, long long hang, int keep)
     if (do_malloc)
     {
       free(ptr);
-      dbg(stdout, "freed %lli bytes\n", bytes);
+      dbg("freed %lli bytes\n", bytes);
     }
   }
   
@@ -146,7 +146,7 @@ static int hoghdd(long long bytes)
   char buff[chunk];
   
   /* Initialize buffer with some random ASCII data.  */
-  dbg(stdout, "seeding %d byte buffer with random data\n", chunk);
+  dbg("seeding %d byte buffer with random data\n", chunk);
   for(i = 0; i < chunk - 1; i++)
   {
     j = unif_rand();
@@ -163,46 +163,46 @@ static int hoghdd(long long bytes)
     
     if ((fd = mkstemp(name)) == -1)
     {
-      err(stderr, "mkstemp failed: %s\n", strerror(errno));
+      err("mkstemp failed: %s\n", strerror(errno));
       return 1;
     }
     
-    dbg(stdout, "opened %s for writing %lli bytes\n", name, bytes);
+    dbg("opened %s for writing %lli bytes\n", name, bytes);
     
-    dbg(stdout, "unlinking %s\n", name);
+    dbg("unlinking %s\n", name);
     if (unlink(name) == -1)
     {
-      err(stderr, "unlink of %s failed: %s\n", name, strerror(errno));
+      err("unlink of %s failed: %s\n", name, strerror(errno));
       return 1;
     }
     
-    dbg(stdout, "fast writing to %s\n", name);
+    dbg("fast writing to %s\n", name);
     for(j = 0; bytes == 0 || j + chunk < bytes; j += chunk)
     {
       if (write(fd, buff, chunk) == -1)
         {
-          err(stderr, "write failed: %s\n", strerror(errno));
+          err("write failed: %s\n", strerror(errno));
           return 1;
         }
     }
     
-    dbg(stdout, "slow writing to %s\n", name);
+    dbg("slow writing to %s\n", name);
     for(; bytes == 0 || j < bytes - 1; j++)
     {
       if (write(fd, &buff[j % chunk], 1) == -1)
         {
-          err(stderr, "write failed: %s\n", strerror(errno));
+          err("write failed: %s\n", strerror(errno));
           return 1;
         }
     }
     if (write(fd, "\n", 1) == -1)
     {
-      err(stderr, "write failed: %s\n", strerror(errno));
+      err("write failed: %s\n", strerror(errno));
       return 1;
     }
     ++j;
     
-    dbg(stdout, "closing %s after %lli bytes\n", name, j);
+    dbg("closing %s after %lli bytes\n", name, j);
     close(fd);
   }
   
@@ -230,17 +230,17 @@ SEXP stress_main(
   /* Record our start time.  */
   if ((starttime = time(NULL)) == -1)
     {
-      err(stderr, "failed to acquire current time: %s\n", strerror(errno));
+      err("failed to acquire current time: %s\n", strerror(errno));
       
       INT(ret) = 1;
       goto finish;
     }
-    
+  
   global_debug = INT(R_verbosity);
   do_dryrun = INT(R_dryrun);
   do_backoff = INT(R_backoff);
   if (do_backoff)
-    dbg(stdout, "setting backoff coeffient to %llius\n", do_backoff);
+    dbg("setting backoff coeffient to %llius\n", do_backoff);
   
   do_timeout = INT(R_timeout);
   do_cpu = INT(R_cpu);
@@ -257,7 +257,7 @@ SEXP stress_main(
   /* Print startup message if we have work to do, bail otherwise.  */
   if (do_cpu + do_io + do_vm + do_hdd)
   {
-    out(stdout, "dispatching hogs: %lli cpu, %lli io, %lli vm, %lli hdd\n",
+    out("dispatching hogs: %lli cpu, %lli io, %lli vm, %lli hdd\n",
          do_cpu, do_io, do_vm, do_hdd);
   }
 /*  else*/ // FIXME
@@ -270,7 +270,7 @@ SEXP stress_main(
     
     /* Calculate the backoff value so we get good fork throughput.  */
     backoff = do_backoff * forks;
-    dbg(stdout, "using backoff sleep of %llius\n", backoff);
+    dbg("using backoff sleep of %llius\n", backoff);
     
     /* If we are supposed to respect a timeout, calculate it.  */
     if (do_timeout)
@@ -290,11 +290,11 @@ SEXP stress_main(
       
       if (timeout > 0)
       {
-        dbg(stdout, "setting timeout to %llis\n", timeout);
+        dbg("setting timeout to %llis\n", timeout);
       }
       else
       {
-        wrn(stderr, "used up time before all workers dispatched\n");
+        wrn("used up time before all workers dispatched\n");
         break;
       }
     }
@@ -314,10 +314,10 @@ SEXP stress_main(
         goto finish;
       
       case -1:           /* error */
-        err(stderr, "fork failed: %s\n", strerror(errno));
+        err("fork failed: %s\n", strerror(errno));
         break;
       default:           /* parent */
-        dbg(stdout, "--> hogcpu worker %lli [%i] forked\n",
+        dbg("--> hogcpu worker %lli [%i] forked\n",
              do_cpu, pid);
         ++children;
       }
@@ -339,10 +339,10 @@ SEXP stress_main(
         goto finish;
         
       case -1:           /* error */
-        err(stderr, "fork failed: %s\n", strerror(errno));
+        err("fork failed: %s\n", strerror(errno));
         break;
       default:           /* parent */
-        dbg(stdout, "--> hogio worker %lli [%i] forked\n", do_io, pid);
+        dbg("--> hogio worker %lli [%i] forked\n", do_io, pid);
         ++children;
       }
       
@@ -364,10 +364,10 @@ SEXP stress_main(
         goto finish;
       
       case -1:           /* error */
-        err(stderr, "fork failed: %s\n", strerror(errno));
+        err("fork failed: %s\n", strerror(errno));
         break;
       default:           /* parent */
-        dbg(stdout, "--> hogvm worker %lli [%i] forked\n", do_vm, pid);
+        dbg("--> hogvm worker %lli [%i] forked\n", do_vm, pid);
         ++children;
       }
       --do_vm;
@@ -388,10 +388,10 @@ SEXP stress_main(
             goto finish;
             
           case -1:           /* error */
-            err(stderr, "fork failed: %s\n", strerror(errno));
+            err("fork failed: %s\n", strerror(errno));
             break;
           default:           /* parent */
-            dbg(stdout, "--> hoghdd worker %lli [%i] forked\n",
+            dbg("--> hoghdd worker %lli [%i] forked\n",
                  do_hdd, pid);
             ++children;
           }
@@ -412,49 +412,49 @@ SEXP stress_main(
       {
         if ((ret = WEXITSTATUS(status)) == 0)
         {
-          dbg(stdout, "<-- worker %i returned normally\n", pid);
+          dbg("<-- worker %i returned normally\n", pid);
         }
         else
         {
-          err(stderr, "<-- worker %i returned error %i\n", pid, ret);
+          err("<-- worker %i returned error %i\n", pid, ret);
           ++retval;
-          wrn(stderr, "now reaping child worker processes\n");
+          wrn("now reaping child worker processes\n");
           if (signal(SIGUSR1, SIG_IGN) == SIG_ERR)
-            err(stderr, "handler error: %s\n", strerror(errno));
+            err("handler error: %s\n", strerror(errno));
           if (kill(-1 * getpid(), SIGUSR1) == -1)
-            err(stderr, "kill error: %s\n", strerror(errno));
+            err("kill error: %s\n", strerror(errno));
         }
       }
       else if (WIFSIGNALED(status))
       {
         if ((ret = WTERMSIG(status)) == SIGALRM)
         {
-          dbg(stdout, "<-- worker %i signalled normally\n", pid);
+          dbg("<-- worker %i signalled normally\n", pid);
         }
         else if ((ret = WTERMSIG(status)) == SIGUSR1)
         {
-          dbg(stdout, "<-- worker %i reaped\n", pid);
+          dbg("<-- worker %i reaped\n", pid);
         }
         else
         {
-          err(stderr, "<-- worker %i got signal %i\n", pid, ret);
+          err("<-- worker %i got signal %i\n", pid, ret);
           ++retval;
-          wrn(stderr, "now reaping child worker processes\n");
+          wrn("now reaping child worker processes\n");
           if (signal(SIGUSR1, SIG_IGN) == SIG_ERR)
-            err(stderr, "handler error: %s\n", strerror(errno));
+            err("handler error: %s\n", strerror(errno));
           if (kill(-1 * getpid(), SIGUSR1) == -1)
-            err(stderr, "kill error: %s\n", strerror(errno));
+            err("kill error: %s\n", strerror(errno));
         }
       }
       else
       {
-        err(stderr, "<-- worker %i exited abnormally\n", pid);
+        err("<-- worker %i exited abnormally\n", pid);
         ++retval;
       }
     }
     else
     {
-      err(stderr, "error waiting for worker: %s\n", strerror(errno));
+      err("error waiting for worker: %s\n", strerror(errno));
       ++retval;
       break;
     }
@@ -463,21 +463,21 @@ SEXP stress_main(
   /* Record our stop time.  */
   if ((stoptime = time(NULL)) == -1)
   {
-    err(stderr, "failed to acquire current time\n");
-    exit(1);
+    err("failed to acquire current time\n");
+    INT(ret) = 1;
+    goto finish;
   }
   
   /* Calculate our runtime.  */
   runtime = stoptime - starttime;
   
-  /* Print final status message.  */
   if (retval)
   {
-    err(stderr, "failed run completed in %lis\n", runtime);
+    error("failed run completed in %lis\n", runtime);
   }
   else
   {
-    out(stdout, "successful run completed in %lis\n", runtime);
+    out("successful run completed in %lis\n", runtime);
   }
   
   INT(ret) = retval;
