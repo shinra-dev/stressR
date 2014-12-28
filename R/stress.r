@@ -1,26 +1,12 @@
-must.be <- function(x, type)
-{
-  Rstuff <- c("character", "numeric", "integer", "double", "logical", "matrix", "data.frame", "vector")
-  type <- match.arg(type, Rstuff)
-  
-  nm <- deparse(substitute(x))
-  fun <- eval(parse(text=paste("is.", type, sep="")))
-  
-  if (!fun(x))
-    stop(paste0("argument '", nm, "' must be of type ", type), call.=FALSE)
-  
-  return(invisible(TRUE))
-}
-
-
-
 stress.opts <- function(backoff=3600, verbose=TRUE, dryrun=FALSE, debug=FALSE)
 {
-  must.be(verbose, "logical")
-  must.be(dryrun, "logical")
+  assert.wholenum(backoff)
+  assert.type(verbose, "logical")
+  assert.type(dryrun, "logical")
+  assert.type(debug, "logical")
   
   backoff <- as.integer(backoff)
-  if (backoff < 0) stop(paste0("argument 'backoff' must be >= 0; have backoff=", backoff))
+  assert.nonneg(backoff)
   
   if (debug)
     verbose <- 3L
@@ -39,11 +25,14 @@ stress.opts <- function(backoff=3600, verbose=TRUE, dryrun=FALSE, debug=FALSE)
 
 vm.opts <- function(bytes=256*1024*1024, stride=4096, hang=0, keep=FALSE)
 {
-  must.be(keep, "logical")
+  assert.wholenum(bytes)
+  assert.wholenum(stride)
+  if (hang != Inf) assert.wholenum(hang)
+  assert.type(keep, "logical")
   
-  if (bytes < 0) stop(paste0("argument 'bytes' must be >= 0; have bytes=", bytes))
-  if (stride < 0) stop(paste0("argument 'stride' must be >= 0; have stride=", stride))
-  if (hang < 0) stop(paste0("argument 'hang' must be >= 0; have hang=", hang))
+  assert.nonneg(bytes)
+  assert.nonneg(stride)
+  assert.nonneg(hang)
   
   if (hang == 0) hang <- -1L
   else if (hang == Inf) hang <- 0L
