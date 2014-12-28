@@ -44,3 +44,16 @@ assert.wholenum <- function(x)
   
   return(invisible(TRUE))
 }
+
+
+
+assert.class <- function(x, class)
+{
+  nm <- deparse(substitute(x))
+  
+  if (class(x) != class)
+    stop(paste0("argument '", nm, "' must be of class ", class, "; have ", nm, "=", class(x)), call.=FALSE)
+  
+  return(invisible(TRUE))
+}
+

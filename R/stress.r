@@ -53,12 +53,10 @@ vm.opts <- function(bytes=256*1024*1024, stride=4096, hang=0, keep=FALSE)
 stress <- function(timeout=1, cpu=0, io=0, vm=0, hdd=0, hdd_bytes=1024*1024*1024, vmopts=vm.opts(), opts=stress.opts())
 {
   timeout <- as.integer(timeout)
-  if (timeout < 0) stop(paste0("argument 'timeout' must be >= 0; have timeout=", timeout))
+  assert.nonneg(timeout)
   
-  if (class(vmopts) != "vm_opts")
-    stop("argument ''")
-  if (class(opts) != "stress_opts")
-    stop("")
+  assert.class(vmopts, "vm_opts")
+  assert.class(opts, "stress_opts")
   
   cpu <- as.integer(cpu)
   io <- as.integer(io)
@@ -79,27 +77,27 @@ stress <- function(timeout=1, cpu=0, io=0, vm=0, hdd=0, hdd_bytes=1024*1024*1024
 
 stress.cpu <- function(timeout=1, cpu=1, opts=stress.opts())
 {
-  stress(timeout=timeout, cpu=cpu, io=0, vm=0, hdd=0, opts=stress.opts())
+  stress(timeout=timeout, cpu=cpu, io=0, vm=0, hdd=0, opts=opts)
 }
 
 
 
 stress.io <- function(timeout=1, io=1, opts=stress.opts())
 {
-  stress(timeout=timeout, cpu=0, io=io, vm=0, hdd=0, opts=stress.opts())
+  stress(timeout=timeout, cpu=0, io=io, vm=0, hdd=0, opts=opts)
 }
 
 
 
 stress.vm <- function(timeout=1, vm=1, vmopts=vm.opts(), opts=stress.opts())
 {
-  stress(timeout=timeout, cpu=0, io=0, vm=vm, hdd=0, vmopts=vm.opts, opts=stress.opts)
+  stress(timeout=timeout, cpu=0, io=0, vm=vm, hdd=0, vmopts=vmopts, opts=opts)
 }
 
 
 
 stress.hdd <- function(timeout=1, hdd=1, hdd_bytes=1024*1024*1024, opts=stress.opts())
 {
-  stress(timeout=timeout, cpu=0, io=0, vm=0, hdd=hdd, hdd_bytes=hdd_bytes, opts=stress.opts())
+  stress(timeout=timeout, cpu=0, io=0, vm=0, hdd=hdd, hdd_bytes=hdd_bytes, opts=opts)
 }
 
