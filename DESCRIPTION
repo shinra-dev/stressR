@@ -1,0 +1,12 @@
+Package: stressR
+Type: Package
+Title: A System Stress Tester
+Version: 0.1
+Description: 
+License: GPL (>= 2)
+Copyright: See memuse/inst/meminfo_LICENSE for the files in src/meminfo/.
+Depends: R (>= 2.15.1), memuse, okcpuid
+NeedsCompilation: yes
+ByteCompile: yes
+Author: Drew Schmidt [aut, cre]
+Maintainer: Drew Schmidt <wrathematics@gmail.com>

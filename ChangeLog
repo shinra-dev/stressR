@@ -1,0 +1,26 @@
+Release 2.1:
+	* Added Sys.cacheinfo()
+	* Rewrote package demos to be more meaningful.
+
+Release 2.0:
+	* Added Sys.procmem()
+	* Added Sys.swapinfo()
+	* Added Sys.meminfo()
+	* Fixed approx_size() bugs.
+	* Added as.character() method.
+	* Added sparse matrix handling for howbig().
+
+Release 1.1:
+	* Cleaned up the docs.
+	* Added howbig.par().
+	* Added better print handling of approximate returns.
+	* Enhanced the vignette and added cover.
+	* Method "object.size()" now returns memuse objects.
+	* Added approximate sizes for howmany() output.
+	* Made internals more consistent.
+	* Better internal documentation.
+
+Release 1.0:
+	* Started with a 10 line function that was more than sufficient.
+	* The joke got tastelessly out of hand.
+

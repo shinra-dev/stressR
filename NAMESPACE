@@ -1,0 +1,3 @@
+useDynLib("stressR", stress_main)
+
+export(stress)
