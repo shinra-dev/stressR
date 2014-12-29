@@ -35,8 +35,24 @@
 
 #include <R.h>
 #include <Rinternals.h>
+#include <R_ext/Utils.h>
+
 
 #define INT(x) INTEGER(x)[0]
+
+// With inspiration from Simon: http://permalink.gmane.org/gmane.comp.lang.r.devel/27627
+#include <stdbool.h>
+
+static void chkIntFn(void *dummy)
+{
+  R_CheckUserInterrupt();
+}
+
+bool checkInterrupt()
+{
+  return (R_ToplevelExec(chkIntFn, NULL) == FALSE);
+}
+
 
 
 /* By default, print all messages of severity info and above.  */
@@ -64,23 +80,47 @@ static char *global_progname = "stressR";
 		Rprintf(STR, ##ARGS)
 
 
+#define HOGLOOPSIZE 5000
+
+// TODO fix it so that C-c kills the child???
+#define chkbrk() \
+  if (checkInterrupt()) \
+  { \
+    wrn("User interrupt detected!\n"); \
+    return 1; \
+  }
 
 static int hogcpu(void)
 {
+  int i;
+  
   while (1)
-    sqrt(unif_rand());
+  {
+    chkbrk()
+    
+    for (i=0; i<HOGLOOPSIZE; i++)
+      sqrt(unif_rand());
+  }
   
   return 0;
 }
 
 static int hogio()
 {
+  int i;
+  
   while (1)
-    sync();
+  {
+    chkbrk()
+    
+    for (i=0; i<HOGLOOPSIZE; i++)
+      sync();
+  }
   
   return 0;
 }
 
+// TODO add C-c checks for this and hoghdd...
 static int hogvm(long long bytes, long long stride, long long hang, int keep)
 {
   long long i;
@@ -260,8 +300,8 @@ SEXP stress_main(
     out("dispatching hogs: %lli cpu, %lli io, %lli vm, %lli hdd\n",
          do_cpu, do_io, do_vm, do_hdd);
   }
-/*  else*/ // FIXME
-/*    usage(0);*/
+  else
+    out("No cpu, io, vm, or hdd jobs requested...\n");
   
   /* Round robin dispatch our worker processes.  */
   while ((forks = (do_cpu + do_io + do_vm + do_hdd)))
@@ -463,7 +503,7 @@ SEXP stress_main(
   /* Record our stop time.  */
   if ((stoptime = time(NULL)) == -1)
   {
-    err("failed to acquire current time\n");
+    error("failed to acquire current time\n");
     INT(ret) = 1;
     goto finish;
   }
@@ -482,12 +522,9 @@ SEXP stress_main(
   
   INT(ret) = retval;
   
-  
-  
   finish:
-    UNPROTECT(1);
   
-  
+  UNPROTECT(1);
   return ret;
 }
 
