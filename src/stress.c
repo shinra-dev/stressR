@@ -83,20 +83,20 @@ static char *global_progname = "stressR";
 #define HOGLOOPSIZE 5000
 
 // TODO fix it so that C-c kills the child???
-#define chkbrk() \
+#define checkRbreak() \
   if (checkInterrupt()) \
   { \
     wrn("User interrupt detected!\n"); \
     return 1; \
   }
 
-static int hogcpu(void)
+static int hogcpu()
 {
   int i;
   
   while (1)
   {
-    chkbrk()
+    checkRbreak()
     
     for (i=0; i<HOGLOOPSIZE; i++)
       sqrt(unif_rand());
@@ -111,7 +111,7 @@ static int hogio()
   
   while (1)
   {
-    chkbrk()
+    checkRbreak()
     
     for (i=0; i<HOGLOOPSIZE; i++)
       sync();
@@ -130,48 +130,53 @@ static int hogvm(long long bytes, long long stride, long long hang, int keep)
   
   while (1)
   {
-    if (do_malloc)
+    checkRbreak()
+    
+    for (i=0; i<HOGLOOPSIZE; i++)
     {
-      dbg("allocating %lli bytes ...\n", bytes);
-      if (!(ptr =(char *) malloc(bytes * sizeof(char))))
+      if (do_malloc)
       {
-        err("hogvm malloc failed: %s\n", strerror(errno));
-        return 1;
+        dbg("allocating %lli bytes ...\n", bytes);
+        if (!(ptr =(char *) malloc(bytes * sizeof(char))))
+        {
+          err("hogvm malloc failed: %s\n", strerror(errno));
+          return 1;
+        }
+        if (keep)
+          do_malloc = 0;
       }
-      if (keep)
-        do_malloc = 0;
-    }
-    
-    dbg("touching bytes in strides of %lli bytes ...\n", stride);
-    for(i = 0; i < bytes; i += stride)
-      ptr[i] = 'Z';           /* Ensure that COW happens.  */
-    
-    if (hang == 0)
-    {
-      dbg("sleeping forever with allocated memory\n");
-      while (1)
-        sleep(1024);
-    }
-    else if (hang > 0)
-    {
-      dbg("sleeping for %llis with allocated memory\n", hang);
-      sleep(hang);
-    }
-    
-    for(i = 0; i < bytes; i += stride)
-    {
-      c = ptr[i];
-      if (c != 'Z')
+      
+      dbg("touching bytes in strides of %lli bytes ...\n", stride);
+      for(i = 0; i < bytes; i += stride)
+        ptr[i] = 'Z';           /* Ensure that COW happens.  */
+      
+      if (hang == 0)
       {
-        err("memory corruption at: %p\n", ptr + i);
-        return 1;
+        dbg("sleeping forever with allocated memory\n");
+        while (1)
+          sleep(1024);
       }
-    }
-    
-    if (do_malloc)
-    {
-      free(ptr);
-      dbg("freed %lli bytes\n", bytes);
+      else if (hang > 0)
+      {
+        dbg("sleeping for %llis with allocated memory\n", hang);
+        sleep(hang);
+      }
+      
+      for(i = 0; i < bytes; i += stride)
+      {
+        c = ptr[i];
+        if (c != 'Z')
+        {
+          err("memory corruption at: %p\n", ptr + i);
+          return 1;
+        }
+      }
+      
+      if (do_malloc)
+      {
+        free(ptr);
+        dbg("freed %lli bytes\n", bytes);
+      }
     }
   }
   
@@ -199,51 +204,56 @@ static int hoghdd(long long bytes)
 
   while (1)
   {
-    char name[] = "./stress.XXXXXX";
+    checkRbreak();
     
-    if ((fd = mkstemp(name)) == -1)
+    for (i=0; i<HOGLOOPSIZE; i++)
     {
-      err("mkstemp failed: %s\n", strerror(errno));
-      return 1;
+      char name[] = "./stress.XXXXXX";
+      
+      if ((fd = mkstemp(name)) == -1)
+      {
+        err("mkstemp failed: %s\n", strerror(errno));
+        return 1;
+      }
+      
+      dbg("opened %s for writing %lli bytes\n", name, bytes);
+      
+      dbg("unlinking %s\n", name);
+      if (unlink(name) == -1)
+      {
+        err("unlink of %s failed: %s\n", name, strerror(errno));
+        return 1;
+      }
+      
+      dbg("fast writing to %s\n", name);
+      for(j = 0; bytes == 0 || j + chunk < bytes; j += chunk)
+      {
+        if (write(fd, buff, chunk) == -1)
+          {
+            err("write failed: %s\n", strerror(errno));
+            return 1;
+          }
+      }
+      
+      dbg("slow writing to %s\n", name);
+      for(; bytes == 0 || j < bytes - 1; j++)
+      {
+        if (write(fd, &buff[j % chunk], 1) == -1)
+          {
+            err("write failed: %s\n", strerror(errno));
+            return 1;
+          }
+      }
+      if (write(fd, "\n", 1) == -1)
+      {
+        err("write failed: %s\n", strerror(errno));
+        return 1;
+      }
+      ++j;
+      
+      dbg("closing %s after %lli bytes\n", name, j);
+      close(fd);
     }
-    
-    dbg("opened %s for writing %lli bytes\n", name, bytes);
-    
-    dbg("unlinking %s\n", name);
-    if (unlink(name) == -1)
-    {
-      err("unlink of %s failed: %s\n", name, strerror(errno));
-      return 1;
-    }
-    
-    dbg("fast writing to %s\n", name);
-    for(j = 0; bytes == 0 || j + chunk < bytes; j += chunk)
-    {
-      if (write(fd, buff, chunk) == -1)
-        {
-          err("write failed: %s\n", strerror(errno));
-          return 1;
-        }
-    }
-    
-    dbg("slow writing to %s\n", name);
-    for(; bytes == 0 || j < bytes - 1; j++)
-    {
-      if (write(fd, &buff[j % chunk], 1) == -1)
-        {
-          err("write failed: %s\n", strerror(errno));
-          return 1;
-        }
-    }
-    if (write(fd, "\n", 1) == -1)
-    {
-      err("write failed: %s\n", strerror(errno));
-      return 1;
-    }
-    ++j;
-    
-    dbg("closing %s after %lli bytes\n", name, j);
-    close(fd);
   }
   
   return 0;
@@ -269,12 +279,12 @@ SEXP stress_main(
   
   /* Record our start time.  */
   if ((starttime = time(NULL)) == -1)
-    {
-      err("failed to acquire current time: %s\n", strerror(errno));
-      
-      INT(ret) = 1;
-      goto finish;
-    }
+  {
+    err("failed to acquire current time: %s\n", strerror(errno));
+    
+    INT(ret) = 1;
+    goto finish;
+  }
   
   global_debug = INT(R_verbosity);
   do_dryrun = INT(R_dryrun);
