@@ -39,7 +39,7 @@ assert.wholenum <- function(x)
 {
   nm <- deparse(substitute(x))
   
-  if (x < 0)
+  if (!isint(x))
     stop(paste0("argument '", nm, "' must be an integer; have ", nm, "=", x), call.=FALSE)
   
   return(invisible(TRUE))
