@@ -10,6 +10,8 @@
 #' \tabular{ll}{ Package: \tab stressR\cr Type: \tab Package\cr License: \tab
 #' GPL (>= 2)\cr }
 #' 
+#' @useDynLib stressR, stress_main
+#' 
 #' @docType package
 #' @author Drew Schmidt \email{wrathematics AT gmail.com}
 #' @references \url{https://github.com/wrathematics/stressR}
