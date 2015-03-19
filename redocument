@@ -2,3 +2,4 @@
 
 Rscript -e "roxygen2::roxygenize()"
 
+Rscript -e "knitr::knit(input='README.Rmd', output='README.md')"

@@ -1,4 +1,5 @@
-# stressR
+# stressR [![Build Status](https://travis-ci.org/shinra-dev/stressR.png)](https://travis-ci.org/shinra-dev/stressR) [![License](http://img.shields.io/badge/license-BSD%202--Clause-orange.svg?style=flat)](http://opensource.org/licenses/BSD-2-Clause)
+
 
 The stressR package contains utilities for stressing various CPU
 resources.

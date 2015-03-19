@@ -1,4 +1,5 @@
 README.Rmd
 rebuild
 redocument
-README.Rmd
+^\.travis\.yml$
+
