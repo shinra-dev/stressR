@@ -1,5 +1,10 @@
-# stressR [![Build Status](https://travis-ci.org/shinra-dev/stressR.png)](https://travis-ci.org/shinra-dev/stressR) [![License](http://img.shields.io/badge/license-BSD%202--Clause-orange.svg?style=flat)](http://opensource.org/licenses/BSD-2-Clause)
+# stressR 
 
+
+* **Version:** 0.1
+* **Status:** [![Build Status](https://travis-ci.org/shinra-dev/stressR.png)](https://travis-ci.org/shinra-dev/stressR) 
+* **License:** [![License](http://img.shields.io/badge/license-BSD%202--Clause-orange.svg?style=flat)](http://opensource.org/licenses/BSD-2-Clause)
+* **Author:** Drew Schmidt
 
 The stressR package contains utilities for stressing various system
 resources, such as CPU, hdd, and vm (ram+swap).
